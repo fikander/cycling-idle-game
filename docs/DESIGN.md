@@ -19,7 +19,7 @@ The tension: **riding harder is faster but burns carbs faster than the gut can r
 
 Game time runs 10x faster than real time (`time_scale`), so one real minute is ten game minutes and a 15-minute demo session is about 2.5 game hours, roughly 55 to 65 km.
 
-The game is meant to be left open. No offline progress is planned for the prototype. If the window is closed, the ride pauses.
+The game is meant to be left open in a corner of the screen, but **the ride carries on while it's closed** too. When you come back, the game catches up on the time you were away (up to 12 real hours) using the same rules as live play. A rider left without food and water slows down, walks, and ends up sitting by the road, so long absences cost you progress rather than earning it.
 
 ## Rider model
 
@@ -48,7 +48,7 @@ The bike starts with a 34/50 chainring and an 11 to 32 cassette.
 - Glycogen store: 450 g, starting at 430 g.
 - Burn rate depends on power and on what share comes from carbs vs fat. Easy riding is mostly fat. Hard riding is mostly carbs. At about 55 % of FTP the rider burns roughly what the gut can absorb (about 50 to 60 g per hour). Ride harder and you're running a deficit.
 - Food goes into the **gut** first and is absorbed at 60 g per hour, more as the gut trains. Eating more than the gut holds (90 g) gives a 10 % penalty, so you can't just eat everything at once.
-- Below 15 % glycogen the rider **bonks** and capacity falls toward 50 %.
+- Below 15 % glycogen the rider **bonks** and capacity falls toward 20 %. With an empty tank, general fatigue also climbs steadily until the rider has to sit down.
 
 | Food | Carbs | Price |
 |---|---|---|
@@ -63,13 +63,23 @@ The rider starts with 4 pocket slots.
 
 - Sweat rate rises with power and with temperature above 16 °C. Temperature follows the time of day (peak mid-afternoon) and the biome (mountains are cooler, coast is warmer).
 - Two 0.75 L bottles to start. Each drink is a 150 ml sip.
-- Up to 1.5 % body-weight water loss is free. Beyond that capacity drops 7 % per percent. At 6 % the rider **collapses** and rests for 2 game hours.
+- Up to 1.5 % body-weight water loss is free. Beyond that capacity drops 7 % per percent. At 6 % the rider **sits down by the road**.
 
 ### Fatigue
 
-- **General fatigue** builds with intensity (steeply, `intensity^2.5`) and recovers when riding easy or resting. At 100 the rider collapses from exhaustion.
+- **General fatigue** builds with intensity (steeply, `intensity^2.5`) and recovers when riding easy or resting. At 100 the rider sits down by the road.
 - **Muscle fatigue** builds from high torque (grinding, wrong gears) and recovers when the legs spin easily.
 - Both reduce capacity.
+
+### Running out: crawl, walk, sit
+
+The rider **never eats or drinks on their own**. Only the player (or a paid automation upgrade) feeds them. When neglected, things go downhill in stages:
+
+1. **Crawling.** Bonked and dehydrated, the rider has a fraction of their power and slows right down.
+2. **Walking.** When the cadence would drop below 40 rpm (a steep climb, a gear that's too big, or no strength left), the rider gets off and pushes the bike at about 4.5 km/h.
+3. **Sitting by the road.** At 6 % dehydration or full exhaustion the rider stops completely and waits.
+
+A sitting rider gets up only when the cause is fixed: water deficit under 4 %, some carbs in the tank or gut, and fatigue under 80. Fatigue recovers while sitting, but food and water have to come from the player. If the pockets and bottles are empty, the player can **flag down a car** for water and food. It costs 15 coins, or nothing if the player is broke, so a rider can never get permanently stuck.
 
 ## Progression
 
@@ -106,36 +116,53 @@ The road runs in 80 km segments, each in one biome, blended at the borders:
 
 The road is generated from a seed, so it's the same every time and the renderer can draw exactly what the simulation rides.
 
+## The route
+
+The game is **one long ride across a continent**, currently 4,000 km, and it ends at the finish line. Biomes change every 80 km along the way.
+
+Later ideas, not in the prototype: **meta progression** (the rider keeps some strength between crossings) and **new continents** with their own landscapes.
+
 ## Demo and paid content (step 3)
 
 - The free demo ends after about 15 minutes of play, around the second shop. That gives enough time to feel a bonk, a shop stop and a level-up.
 - Paid content (more biomes, shop tiers, the automation upgrades) ships as a **separate Godot content pack (.pck)** that is only downloaded after purchase. The free build doesn't contain it, so there's nothing in it to unlock by hacking.
 - For real protection the pack has to be served by a small server that checks the store receipt (Apple, Google, Steam) before handing out a signed, short-lived download link. The Vercel project could host this. In the prototype the purchase is a stub.
 
-## What the first pacing run shows
+## What the pacing run shows
 
-`docs/pacing_baseline.txt` holds the output of `tools/simulate.gd`. It simulates players with different check-in habits for 2 real hours.
+`docs/pacing_baseline.txt` holds the output of `tools/simulate.gd`. It simulates players with different check-in habits for 2 real hours, plus closing the game after 15 minutes.
 
-| Player | km after 15 min | km after 2 h | Time bonked |
+| Player | km after 15 min | km after 2 h | What happens |
 |---|---|---|---|
-| Never checks in | 63 | 290 | 53 %, plus 2 collapses |
-| Every 5 min | 56 | 362 | 36 % |
-| Every 20 min | 63 | 339 | 71 % |
-| Every 20 min with all automation | 65 | 374 | 47 % |
+| Never checks in | 63 | 164 | Sits down from dehydration after about 1 hour, at km 164 |
+| Every 5 min | 56 | 355 | Never sits down |
+| Every 20 min | 63 | 295 | Walks 27 % of the time |
+| Every 20 min with all automation | 65 | 342 | Runs out of food: automation doesn't stop at shops |
+
+Closing the game after 15 minutes of play:
+
+| Time away | Extra km | Result |
+|---|---|---|
+| 30 min | +111 | Still riding |
+| 2 h | +149 | Sat down (dehydration) about 50 minutes after closing |
+| 8 h | +149 | Same: the rider waits by the road |
 
 What this tells us:
 
-- **Paying attention pays off** after the first half hour, by about 25 % over 2 hours. Early on, an attentive player is slightly slower because they ride at a sensible pace instead of at the starting gear. We want the first 15 minutes to reward attention too, probably through a fresher start, a visible early climb and an early cheap upgrade.
-- **Food supply becomes the limit after about 1 real hour.** With only 4 pocket slots even careful players run dry between shops. This is good. It makes the first upgrade (the saddle bag) feel essential.
-- **Muscle fatigue builds up for anyone without auto-shift**, because the gear set at the last check-in is wrong for the next climb. This makes auto-shift a strong mid-game upgrade. It may be too punishing and needs tuning.
-- Nobody sleeps yet. Real ultra riders do, and a sleep mechanic could be a nice "come back later" moment.
+- **Checking in now pays off strongly.** An attentive player rides more than twice as far as a neglected one over 2 hours.
+- **Offline progress is capped by supplies, not by a timer.** You get about an hour of riding, then the rider waits. That's a natural reason to come back. Bigger bottles and more pockets let the rider go further offline, which makes those upgrades feel valuable.
+- **Walking replaces grinding** as the penalty for a wrong gear on a climb, so muscle fatigue barely builds now. Auto-shift still matters because it avoids walking.
+- **Food supply is the limit after about 1 real hour.** With 4 pocket slots even careful players run low between shops. The saddle bag should be the first upgrade.
+- The first 15 minutes still don't reward attention much. We'll fix that in step 2 with an early climb and a cheap first upgrade.
 
-## Open questions
+## Decisions
 
-1. Should the rider eat and drink a little on their own when unattended, so a forgotten game doesn't end in a collapse?
-2. Should there be a separate **effort** control (easy, steady, hard) as well as cadence and gears? It would be clearer for casual players.
-3. Should progress continue while the app is closed (classic idle), or is "the window must stay open" fine?
-4. How long is the paid game? One long ride across a continent with an end, or endless?
+Answered by Tomek on 27 November 2026:
+
+1. **No self-care.** The rider never eats or drinks unattended. They crawl, walk and finally sit by the road.
+2. **No separate effort control.** Cadence and gears are the controls. Finer difficulty settings can come later.
+3. **Progress continues while the game is closed,** with the same rules as live play.
+4. **One continent-long ride with an end.** Meta progression and new continents later.
 
 ## Code layout
 

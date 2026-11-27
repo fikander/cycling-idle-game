@@ -216,3 +216,87 @@ func test_save_load_roundtrip() -> void:
 	a.step(2.0)
 	b.step(2.0)
 	near(b.distance_km, a.distance_km, 1e-6, "same state continues identically")
+
+
+# ---------------------------------------------------------------- exhaustion, offline, route
+
+func _ride(s, hours: float, dt := 2.0) -> void:
+	for i in int(hours * 3600.0 / dt):
+		s.step(dt)
+
+
+func test_exhausted_rider_walks_steep_climb_in_big_gear() -> void:
+	var s := _sim()
+	s.glycogen_g = 0.0
+	s.front = 1
+	s.rear = s.cassette.size() - 1  # 50x11, far too big
+	# Find a steep climb.
+	var km := 0.0
+	while s.terrain.grade_at(km) < 0.06 and km < 2000.0:
+		km += 0.1
+	s.distance_km = km
+	s.step(2.0)
+	check(s.walking, "bonked rider in 50x11 on %.1f %% should walk" % (s.grade * 100.0))
+	check(s.speed_ms * 3.6 <= tuning.exhaustion.walk_speed_kmh + 0.01, "walking speed")
+
+
+func test_unattended_rider_ends_up_sitting_and_stays_there() -> void:
+	var s := _sim()
+	_ride(s, 12.0, 4.0)
+	check(s.sitting, "unattended rider should sit by the road within 12 h")
+	var km := s.distance_km
+	_ride(s, 4.0, 60.0)
+	check(s.sitting, "rider never eats or drinks alone, so stays sitting")
+	near(s.distance_km, km, 1e-6, "no distance while sitting")
+
+
+func test_sitting_rider_gets_up_after_food_and_water() -> void:
+	var s := _sim()
+	s.sitting = true
+	s.sit_reason = "dehydration"
+	s.water_deficit_l = tuning.rider.mass_kg * 0.065
+	s.glycogen_g = 0.0
+	s.general_fatigue = 50.0
+	check(s.roadside_help(), "help is available while sitting")
+	while s.drink():
+		pass
+	s.eat_best()
+	_ride(s, 0.5, 10.0)
+	check(not s.sitting, "rider gets up once fed and watered")
+
+
+func test_roadside_help_never_soft_locks() -> void:
+	var s := _sim()
+	s.sitting = true
+	s.coins = 0.0
+	s.water_deficit_l = 3.0
+	check(s.roadside_help(), "broke rider still gets help")
+	check(s.water_deficit_l < 3.0, "help gives water")
+	check(s.gut_g > 0.0, "help gives food")
+
+
+func test_catch_up_is_capped_and_reports() -> void:
+	var s := _sim()
+	var cap: float = tuning.offline.max_real_hours * 3600.0 * tuning.time_scale
+	var r: Dictionary = s.catch_up(cap * 3.0)
+	near(r.game_seconds, cap, 1.0, "offline time capped")
+	check(r.km > 0.0, "some distance offline")
+	check(r.sitting and r.sat_at_km > 0.0, "unfed rider sits by the road offline")
+
+
+func test_offline_and_live_agree_roughly() -> void:
+	var a := _sim()
+	var b := _sim()
+	_ride(a, 2.0, 2.0)
+	b.catch_up(2.0 * 3600.0)
+	check(absf(a.distance_km - b.distance_km) < 1.0, "live %.2f km vs offline %.2f km" % [a.distance_km, b.distance_km])
+
+
+func test_route_finishes() -> void:
+	var s := _sim()
+	s.distance_km = tuning.route.length_km - 0.001
+	s.glycogen_g = tuning.rider.glycogen_max_g
+	for i in 10:
+		s.step(2.0)
+	check(s.finished, "route should finish")
+	near(s.distance_km, tuning.route.length_km, 1e-6, "distance stops at the finish")

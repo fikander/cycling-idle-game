@@ -9,48 +9,58 @@ Steepest grade in first 400 km: 10.0 %
 == unattended (check-ins: never, automation off) ==
   real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
         15 |  63.0 | 25.2 |    63 |     65 |     1.7 |       3 / 0     |  1/ 1/ 0/ 0/ 0    |    4  1.50
-        30 | 125.2 | 25.0 |   130 |     20 |     3.9 |       4 / 0     |  1/ 1/ 0/ 0/ 1    |    4  1.50
-        60 | 178.2 | 17.8 |   192 |      0 |     2.3 |       0 / 1     |  1/ 2/ 1/ 0/ 2    |    4  1.50
-       120 | 290.0 | 14.5 |   337 |      0 |     3.0 |       0 / 28    |  2/ 3/ 3/ 0/ 2    |    4  1.50
-  first bonk: 32.0 real min | time bonked 53% | weak (<80% capacity) 53% | grinding 44% | collapses: ["dehydration at 170 km", "dehydration at 263 km"]
+        30 | 124.4 | 24.9 |   129 |     22 |     3.9 |       4 / 0     |  1/ 1/ 0/ 0/ 1    |    4  1.50
+        60 | 163.5 | 16.4 |   173 |      0 |     6.2 |       0 / 0     |  1/ 2/ 0/ 0/ 1    |    4  1.50
+       120 | 163.5 |  8.2 |   173 |      0 |     6.9 |       0 / 0     |  1/ 2/ 0/ 0/ 1    |    4  1.50
+  first bonk: 32.6 real min | time bonked 12% | weak (<80% capacity) 12% | grinding 5% | walking 7% | sitting 61%
+  sat down: dehydration at 164 km
 
 == checkin_2 (check-ins: 2 real min, automation off) ==
   real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
         15 |  64.0 | 25.6 |    54 |     67 |     0.1 |       3 / 0     |  1/ 1/ 0/ 0/ 0    |    1  0.75
-        30 | 123.5 | 24.7 |    88 |     32 |     0.3 |       2 / 0     |  1/ 1/ 1/ 1/ 1    |    3  1.05
-        60 | 217.4 | 21.7 |   153 |     11 |     0.0 |       0 / 28    |  2/ 2/ 2/ 2/ 2    |    4  1.50
-       120 | 362.5 | 18.1 |   282 |      3 |     0.3 |       0 / 64    |  3/ 3/ 3/ 2/ 2    |    1  1.35
-  first bonk: 51.0 real min | time bonked 51% | weak (<80% capacity) 28% | grinding 31% | collapses: none
+        30 | 117.7 | 23.5 |    81 |     52 |     0.3 |       0 / 0     |  1/ 1/ 0/ 1/ 1    |    3  1.20
+        60 | 211.2 | 21.1 |   160 |     28 |     0.3 |       0 / 0     |  2/ 2/ 1/ 2/ 2    |    0  0.45
+       120 | 360.6 | 18.0 |   279 |      9 |     0.3 |       0 / 0     |  3/ 3/ 2/ 2/ 2    |    1  1.50
+  first bonk: 83.2 real min | time bonked 20% | weak (<80% capacity) 16% | grinding 22% | walking 10% | sitting 0%
+  sat down: never
 
 == checkin_5 (check-ins: 5 real min, automation off) ==
   real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
         15 |  55.5 | 22.2 |    45 |     91 |     0.6 |       0 / 0     |  0/ 1/ 0/ 0/ 0    |    3  1.35
-        30 | 111.0 | 22.2 |    79 |     75 |     0.4 |       1 / 0     |  1/ 1/ 0/ 1/ 1    |    4  1.50
-        60 | 217.4 | 21.7 |   163 |     22 |     0.0 |       1 / 74    |  2/ 2/ 2/ 1/ 2    |    4  1.50
-       120 | 362.4 | 18.1 |   297 |      7 |     0.5 |       0 / 73    |  3/ 3/ 4/ 2/ 2    |    2  1.50
-  first bonk: 69.0 real min | time bonked 36% | weak (<80% capacity) 42% | grinding 36% | collapses: none
+        30 | 112.1 | 22.4 |    80 |     67 |     0.5 |       2 / 0     |  1/ 1/ 0/ 1/ 1    |    4  1.50
+        60 | 217.4 | 21.7 |   163 |     11 |     0.8 |       2 / 0     |  2/ 2/ 1/ 1/ 2    |    4  1.50
+       120 | 355.2 | 17.8 |   279 |      6 |     0.0 |       0 / 0     |  2/ 3/ 2/ 2/ 2    |    4  1.50
+  first bonk: 56.9 real min | time bonked 43% | weak (<80% capacity) 9% | grinding 20% | walking 15% | sitting 0%
+  sat down: never
 
 == checkin_10 (check-ins: 10 real min, automation off) ==
   real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
         15 |  64.4 | 25.8 |    64 |     72 |     0.7 |       3 / 0     |  1/ 1/ 0/ 0/ 0    |    2  0.75
-        30 | 111.6 | 22.3 |    95 |     67 |     0.4 |       0 / 0     |  1/ 1/ 0/ 1/ 1    |    4  1.50
-        60 | 211.3 | 21.1 |   195 |      9 |     1.3 |       0 / 75    |  2/ 2/ 2/ 1/ 2    |    2  1.20
-       120 | 342.5 | 17.1 |   316 |      0 |     1.0 |       0 / 100   |  2/ 3/ 4/ 2/ 2    |    2  1.05
-  first bonk: 48.2 real min | time bonked 56% | weak (<80% capacity) 59% | grinding 38% | collapses: none
+        30 | 108.8 | 21.8 |    92 |     71 |     0.3 |       0 / 0     |  1/ 1/ 0/ 1/ 1    |    4  1.50
+        60 | 210.0 | 21.0 |   193 |     28 |     1.4 |       1 / 0     |  2/ 2/ 1/ 1/ 2    |    2  1.50
+       120 | 342.4 | 17.1 |   316 |      3 |     1.0 |       0 / 0     |  2/ 3/ 1/ 2/ 2    |    2  1.05
+  first bonk: 79.1 real min | time bonked 32% | weak (<80% capacity) 29% | grinding 18% | walking 11% | sitting 0%
+  sat down: never
 
 == checkin_20 (check-ins: 20 real min, automation off) ==
   real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
         15 |  63.0 | 25.2 |    63 |     65 |     1.7 |       3 / 0     |  1/ 1/ 0/ 0/ 0    |    4  1.50
-        30 | 127.5 | 25.5 |   122 |     18 |     1.1 |       5 / 0     |  1/ 1/ 1/ 0/ 1    |    4  1.50
-        60 | 207.2 | 20.7 |   209 |      0 |     1.6 |       0 / 2     |  2/ 2/ 2/ 1/ 2    |    4  1.50
-       120 | 338.5 | 16.9 |   359 |      0 |     1.3 |       0 / 100   |  2/ 3/ 3/ 1/ 2    |    4  1.50
-  first bonk: 30.9 real min | time bonked 71% | weak (<80% capacity) 70% | grinding 40% | collapses: none
+        30 | 102.7 | 20.5 |    95 |     66 |     0.1 |       0 / 0     |  1/ 1/ 0/ 0/ 1    |    4  1.50
+        60 | 190.0 | 19.0 |   187 |      7 |     2.6 |       1 / 0     |  1/ 2/ 1/ 1/ 2    |    4  1.50
+       120 | 295.3 | 14.8 |   294 |      0 |     0.7 |       6 / 0     |  2/ 3/ 1/ 1/ 2    |    4  1.50
+  first bonk: 55.6 real min | time bonked 51% | weak (<80% capacity) 50% | grinding 16% | walking 27% | sitting 0%
+  sat down: never
 
 == automated_checkin_20 (check-ins: 20 real min, automation on) ==
   real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
         15 |  64.8 | 25.9 |    65 |     62 |     0.4 |       4 / 0     |  1/ 1/ 0/ 0/ 0    |    4  0.45
         30 | 121.5 | 24.3 |   111 |     59 |     0.4 |       4 / 0     |  1/ 1/ 0/ 0/ 1    |    2  1.20
         60 | 227.9 | 22.8 |   221 |     16 |     0.4 |      10 / 0     |  2/ 2/ 0/ 1/ 2    |    0  0.00
-       120 | 373.8 | 18.7 |   378 |      3 |     0.4 |       0 / 0     |  3/ 3/ 1/ 2/ 2    |    0  1.20
-  first bonk: 60.2 real min | time bonked 47% | weak (<80% capacity) 46% | grinding 26% | collapses: none
+       120 | 342.4 | 17.1 |   341 |      0 |     1.3 |      32 / 0     |  3/ 3/ 1/ 2/ 2    |    0  0.00
+  first bonk: 60.2 real min | time bonked 48% | weak (<80% capacity) 46% | grinding 13% | walking 20% | sitting 0%
+  sat down: never
 
+== offline: 15 min of play with check-ins every 5 min, then the game is closed ==
+  away  0.5 h: 55 km -> +111 km, +120 coins, kept riding
+  away  2.0 h: 55 km -> +149 km, +171 coins, sat down (dehydration) at 205 km, 51 real min after closing
+  away  8.0 h: 55 km -> +149 km, +171 coins, sat down (dehydration) at 205 km, 51 real min after closing

@@ -37,6 +37,10 @@ func _init() -> void:
 		if only != "" and name != only:
 			continue
 		run_scenario(name, SCENARIOS[name], tuning, minutes)
+	if only == "" or only == "offline":
+		print("== offline: 15 min of play with check-ins every 5 min, then the game is closed ==")
+		for h in [0.5, 2.0, 8.0]:
+			run_offline(tuning, h)
 	quit()
 
 
@@ -70,6 +74,8 @@ func _print_terrain(tuning: Dictionary) -> void:
 
 ## A player's check-in: fix the gear, eat, drink, plan a shop stop.
 func check_in(sim) -> void:
+	if sim.sitting and sim.pockets.is_empty() and sim.water_left_l() <= 0.0:
+		sim.roadside_help()
 	sim.apply_best_gear()
 	# Eat up to what the gut can hold, unless the tank is nearly full.
 	while sim.glycogen_ratio() < 0.9 and sim.gut_g < 60.0 and sim.eat_best():
@@ -89,8 +95,8 @@ func _on_shop(_km: float, sim) -> void:
 
 func run_scenario(name: String, sc: Dictionary, tuning: Dictionary, minutes: float) -> Dictionary:
 	var sim := RiderSim.new(tuning)
-	var collapses := []
-	sim.collapsed.connect(func(reason): collapses.append([sim.distance_km, reason]))
+	var sit_downs := []
+	sim.sat_down.connect(func(reason): sit_downs.append([sim.distance_km, reason]))
 	sim.shop_reached.connect(_on_shop.bind(sim))
 	if sc.auto:
 		sim.auto_drink = true
@@ -105,6 +111,8 @@ func run_scenario(name: String, sc: Dictionary, tuning: Dictionary, minutes: flo
 	var low_capacity_s := 0.0
 	var bonk_s := 0.0
 	var grind_s := 0.0
+	var walk_s := 0.0
+	var sit_s := 0.0
 	var first_bonk_min := -1.0
 	var cp_index := 0
 
@@ -117,7 +125,11 @@ func run_scenario(name: String, sc: Dictionary, tuning: Dictionary, minutes: flo
 			check_in(sim)
 			next_checkin += checkin_game_s
 		sim.step(dt)
-		if not sim.is_resting():
+		if sim.sitting:
+			sit_s += dt
+		elif sim.walking:
+			walk_s += dt
+		if not sim.is_resting() and not sim.sitting:
 			if sim.capacity < 0.8:
 				low_capacity_s += dt
 			if sim.glycogen_ratio() < tuning.energy_penalties.bonk_threshold:
@@ -133,13 +145,36 @@ func run_scenario(name: String, sc: Dictionary, tuning: Dictionary, minutes: flo
 			cp_index += 1
 
 	var ride_h := sim.time_s / 3600.0
-	print("  first bonk: %s | time bonked %.0f%% | weak (<80%% capacity) %.0f%% | grinding %.0f%% | collapses: %s\n" % [
+	print("  first bonk: %s | time bonked %.0f%% | weak (<80%% capacity) %.0f%% | grinding %.0f%% | walking %.0f%% | sitting %.0f%%" % [
 		"none" if first_bonk_min < 0.0 else "%.1f real min" % first_bonk_min,
 		bonk_s / sim.time_s * 100.0, low_capacity_s / sim.time_s * 100.0,
-		grind_s / sim.time_s * 100.0,
-		"none" if collapses.is_empty() else str(collapses.map(func(c): return "%s at %.0f km" % [c[1], c[0]]))])
-	return {"km": sim.distance_km, "avg_kmh": sim.distance_km / ride_h, "collapses": collapses.size(),
+		grind_s / sim.time_s * 100.0, walk_s / sim.time_s * 100.0, sit_s / sim.time_s * 100.0])
+	print("  sat down: %s\n" % ("never" if sit_downs.is_empty() else
+		", ".join(sit_downs.map(func(c): return "%s at %.0f km" % [c[1], c[0]]))))
+	return {"km": sim.distance_km, "avg_kmh": sim.distance_km / ride_h, "sit_downs": sit_downs.size(),
 		"bonk_frac": bonk_s / sim.time_s}
+
+
+## Plays 15 attentive minutes, then closes the game for a while.
+func run_offline(tuning: Dictionary, hours_away: float) -> void:
+	var sim := RiderSim.new(tuning)
+	var dt: float = tuning.sim_step_s
+	var scale: float = tuning.time_scale
+	var next_checkin := 5.0 * 60.0 * scale
+	while sim.time_s < 15.0 * 60.0 * scale:
+		if sim.time_s >= next_checkin:
+			check_in(sim)
+			next_checkin += 5.0 * 60.0 * scale
+		sim.step(dt)
+	check_in(sim)
+	var km_before: float = sim.distance_km
+	var r: Dictionary = sim.catch_up(hours_away * 3600.0 * scale)
+	var sat := "kept riding"
+	if r.sat_at_km >= 0.0:
+		sat = "sat down (%s) at %.0f km, %.0f real min after closing" % [
+			r.sit_reason, r.sat_at_km, r.sat_after_game_s / scale / 60.0]
+	print("  away %4.1f h: %.0f km -> +%.0f km, +%.0f coins, %s" % [
+		hours_away, km_before, r.km, r.coins, sat])
 
 
 func _print_row(sim, real_min: float) -> void:
