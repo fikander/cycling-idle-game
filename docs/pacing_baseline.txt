@@ -1,0 +1,56 @@
+
+Ultra Idle Cycling: pacing simulation
+time_scale=10x  (1 real minute = 10 game minutes)
+
+Route (first 400 km): 0 km fields | 80 km coast | 160 km hills | 240 km hills | 320 km mountains | 
+Shops at km: 28, 72, 100, 136, 176, 217 ...
+Steepest grade in first 400 km: 10.0 %
+
+== unattended (check-ins: never, automation off) ==
+  real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
+        15 |  63.0 | 25.2 |    63 |     65 |     1.7 |       3 / 0     |  1/ 1/ 0/ 0/ 0    |    4  1.50
+        30 | 125.2 | 25.0 |   130 |     20 |     3.9 |       4 / 0     |  1/ 1/ 0/ 0/ 1    |    4  1.50
+        60 | 178.2 | 17.8 |   192 |      0 |     2.3 |       0 / 1     |  1/ 2/ 1/ 0/ 2    |    4  1.50
+       120 | 290.0 | 14.5 |   337 |      0 |     3.0 |       0 / 28    |  2/ 3/ 3/ 0/ 2    |    4  1.50
+  first bonk: 32.0 real min | time bonked 53% | weak (<80% capacity) 53% | grinding 44% | collapses: ["dehydration at 170 km", "dehydration at 263 km"]
+
+== checkin_2 (check-ins: 2 real min, automation off) ==
+  real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
+        15 |  64.0 | 25.6 |    54 |     67 |     0.1 |       3 / 0     |  1/ 1/ 0/ 0/ 0    |    1  0.75
+        30 | 123.5 | 24.7 |    88 |     32 |     0.3 |       2 / 0     |  1/ 1/ 1/ 1/ 1    |    3  1.05
+        60 | 217.4 | 21.7 |   153 |     11 |     0.0 |       0 / 28    |  2/ 2/ 2/ 2/ 2    |    4  1.50
+       120 | 362.5 | 18.1 |   282 |      3 |     0.3 |       0 / 64    |  3/ 3/ 3/ 2/ 2    |    1  1.35
+  first bonk: 51.0 real min | time bonked 51% | weak (<80% capacity) 28% | grinding 31% | collapses: none
+
+== checkin_5 (check-ins: 5 real min, automation off) ==
+  real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
+        15 |  55.5 | 22.2 |    45 |     91 |     0.6 |       0 / 0     |  0/ 1/ 0/ 0/ 0    |    3  1.35
+        30 | 111.0 | 22.2 |    79 |     75 |     0.4 |       1 / 0     |  1/ 1/ 0/ 1/ 1    |    4  1.50
+        60 | 217.4 | 21.7 |   163 |     22 |     0.0 |       1 / 74    |  2/ 2/ 2/ 1/ 2    |    4  1.50
+       120 | 362.4 | 18.1 |   297 |      7 |     0.5 |       0 / 73    |  3/ 3/ 4/ 2/ 2    |    2  1.50
+  first bonk: 69.0 real min | time bonked 36% | weak (<80% capacity) 42% | grinding 36% | collapses: none
+
+== checkin_10 (check-ins: 10 real min, automation off) ==
+  real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
+        15 |  64.4 | 25.8 |    64 |     72 |     0.7 |       3 / 0     |  1/ 1/ 0/ 0/ 0    |    2  0.75
+        30 | 111.6 | 22.3 |    95 |     67 |     0.4 |       0 / 0     |  1/ 1/ 0/ 1/ 1    |    4  1.50
+        60 | 211.3 | 21.1 |   195 |      9 |     1.3 |       0 / 75    |  2/ 2/ 2/ 1/ 2    |    2  1.20
+       120 | 342.5 | 17.1 |   316 |      0 |     1.0 |       0 / 100   |  2/ 3/ 4/ 2/ 2    |    2  1.05
+  first bonk: 48.2 real min | time bonked 56% | weak (<80% capacity) 59% | grinding 38% | collapses: none
+
+== checkin_20 (check-ins: 20 real min, automation off) ==
+  real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
+        15 |  63.0 | 25.2 |    63 |     65 |     1.7 |       3 / 0     |  1/ 1/ 0/ 0/ 0    |    4  1.50
+        30 | 127.5 | 25.5 |   122 |     18 |     1.1 |       5 / 0     |  1/ 1/ 1/ 0/ 1    |    4  1.50
+        60 | 207.2 | 20.7 |   209 |      0 |     1.6 |       0 / 2     |  2/ 2/ 2/ 1/ 2    |    4  1.50
+       120 | 338.5 | 16.9 |   359 |      0 |     1.3 |       0 / 100   |  2/ 3/ 3/ 1/ 2    |    4  1.50
+  first bonk: 30.9 real min | time bonked 71% | weak (<80% capacity) 70% | grinding 40% | collapses: none
+
+== automated_checkin_20 (check-ins: 20 real min, automation on) ==
+  real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water
+        15 |  64.8 | 25.9 |    65 |     62 |     0.4 |       4 / 0     |  1/ 1/ 0/ 0/ 0    |    4  0.45
+        30 | 121.5 | 24.3 |   111 |     59 |     0.4 |       4 / 0     |  1/ 1/ 0/ 0/ 1    |    2  1.20
+        60 | 227.9 | 22.8 |   221 |     16 |     0.4 |      10 / 0     |  2/ 2/ 0/ 1/ 2    |    0  0.00
+       120 | 373.8 | 18.7 |   378 |      3 |     0.4 |       0 / 0     |  3/ 3/ 1/ 2/ 2    |    0  1.20
+  first bonk: 60.2 real min | time bonked 47% | weak (<80% capacity) 46% | grinding 26% | collapses: none
+

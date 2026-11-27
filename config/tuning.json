@@ -1,0 +1,134 @@
+{
+  "_comment": "All gameplay tuning lives here. Units: km, m, s, W, g (carbs), L (water), deg C. Game time runs time_scale times faster than real time.",
+
+  "time_scale": 10.0,
+  "start_hour": 7.0,
+  "sim_step_s": 2.0,
+
+  "physics": {
+    "gravity": 9.81,
+    "air_density": 1.225,
+    "crr": 0.0055,
+    "cda": 0.38,
+    "drivetrain_efficiency": 0.97,
+    "wheel_circumference_m": 2.1,
+    "max_descent_speed_ms": 18.0
+  },
+
+  "rider": {
+    "mass_kg": 72.0,
+    "ftp_w": 210.0,
+    "effort_cap": 1.15,
+    "glycogen_max_g": 450.0,
+    "glycogen_start_g": 430.0,
+    "gut_absorb_gph": 60.0,
+    "gut_capacity_g": 90.0,
+    "base_sweat_lph": 0.55,
+    "resting_kcal_h": 80.0
+  },
+
+  "bike": {
+    "mass_kg": 10.5,
+    "chainrings": [34, 50],
+    "cassette": [32, 28, 25, 22, 20, 18, 16, 14, 12, 11],
+    "start_front": 1,
+    "start_rear": 3,
+    "bottle_count": 2,
+    "bottle_capacity_l": 0.75,
+    "pocket_slots": 4
+  },
+
+  "cadence": {
+    "start_rpm": 88.0,
+    "optimal_rpm": 88.0,
+    "min_rpm": 40.0,
+    "max_rpm": 125.0,
+    "efficiency_falloff": 0.35
+  },
+
+  "metabolism": {
+    "gross_efficiency": 0.22,
+    "carb_fraction_curve": [[0.0, 0.2], [0.4, 0.3], [0.55, 0.42], [0.65, 0.55], [0.75, 0.68], [0.9, 0.85], [1.1, 1.0]]
+  },
+
+  "fatigue": {
+    "general_rate_per_h": 6.0,
+    "general_exponent": 2.5,
+    "general_recovery_per_h": 8.0,
+    "recovery_intensity": 0.45,
+    "rest_recovery_per_h": 25.0,
+    "muscle_rate_per_h": 25.0,
+    "muscle_torque_threshold": 0.9,
+    "muscle_recovery_per_h": 20.0,
+    "general_penalty": 0.45,
+    "muscle_penalty": 0.45
+  },
+
+  "energy_penalties": {
+    "bonk_threshold": 0.15,
+    "bonk_floor": 0.5,
+    "dehydration_free_pct": 1.5,
+    "dehydration_penalty_per_pct": 0.07,
+    "dehydration_collapse_pct": 6.0,
+    "gut_overfill_penalty": 0.1,
+    "collapse_rest_h": 2.0
+  },
+
+  "hydration": {
+    "sip_l": 0.15,
+    "heat_threshold_c": 16.0,
+    "heat_factor_per_c": 0.05,
+    "reference_power_w": 150.0
+  },
+
+  "terrain": {
+    "seed": 1234,
+    "max_grade": 0.10,
+    "segment_km": 80.0,
+    "blend_km": 6.0,
+    "shop_every_km": 35.0,
+    "shop_jitter_km": 8.0,
+    "base_temp_c": 17.0,
+    "day_temp_swing_c": 7.0,
+    "biomes": [
+      {"id": "fields", "amp_m": 25.0, "freq": 0.08, "temp_offset_c": 1.0, "coin_mult": 1.0},
+      {"id": "hills", "amp_m": 110.0, "freq": 0.15, "temp_offset_c": 0.0, "coin_mult": 1.3},
+      {"id": "coast", "amp_m": 45.0, "freq": 0.12, "temp_offset_c": 3.0, "coin_mult": 1.1},
+      {"id": "mountains", "amp_m": 650.0, "freq": 0.05, "temp_offset_c": -5.0, "coin_mult": 1.8}
+    ]
+  },
+
+  "economy": {
+    "coins_per_km": 1.0,
+    "shop_stop_minutes": 10.0
+  },
+
+  "food": {
+    "gel": {"carbs_g": 25.0, "water_l": 0.0, "price": 6},
+    "bar": {"carbs_g": 40.0, "water_l": 0.0, "price": 8},
+    "banana": {"carbs_g": 27.0, "water_l": 0.0, "price": 4},
+    "rice_cake": {"carbs_g": 35.0, "water_l": 0.0, "price": 5}
+  },
+  "start_pockets": ["bar", "bar", "gel", "banana"],
+
+  "training": {
+    "xp_per_level": 0.5,
+    "endurance_ftp_per_level": 0.02,
+    "stamina_fatigue_per_level": 0.04,
+    "strength_muscle_per_level": 0.05,
+    "gut_absorb_gph_per_level": 4.0,
+    "cooling_sweat_per_level": 0.03,
+    "endurance_xp_per_h": 0.6,
+    "strength_xp_per_torque_h": 1.2,
+    "gut_xp_per_100g": 0.35,
+    "cooling_xp_per_hot_l": 0.5,
+    "max_level": 30
+  },
+
+  "automation": {
+    "drink_deficit_l": 0.4,
+    "eat_glycogen_ratio": 0.6,
+    "eat_gut_max_g": 30.0,
+    "target_intensity": 0.6
+  }
+}
