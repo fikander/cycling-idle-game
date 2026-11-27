@@ -26,6 +26,9 @@ var stop_at_next_shop := false
 var auto_drink := false
 var auto_eat := false
 var auto_shift := false
+## Stops at the next shop on its own when supplies are low, and restocks.
+var auto_shop := false
+var owned_upgrades: Array[String] = []
 
 # --- bike and kit ---
 var chainrings: Array
@@ -85,13 +88,9 @@ func _init(tuning: Dictionary) -> void:
 	cassette = b.cassette.map(func(x): return int(x))
 	front = int(b.start_front)
 	rear = int(b.start_rear)
-	bike_mass = b.mass_kg
-	cda = t.physics.cda
-	crr = t.physics.crr
-	bottle_capacity_l = b.bottle_capacity_l
-	for i in int(b.bottle_count):
-		bottles.append(bottle_capacity_l)
-	pocket_slots = int(b.pocket_slots)
+	_reset_kit()
+	for i in bottles.size():
+		bottles[i] = bottle_capacity_l
 	for f in t.start_pockets:
 		pockets.append(f)
 	cadence_target = t.cadence.start_rpm
@@ -259,6 +258,100 @@ func refill_bottles() -> void:
 		bottles[i] = bottle_capacity_l
 
 
+# ---------------------------------------------------------------- upgrades
+
+func _reset_kit() -> void:
+	var b: Dictionary = t.bike
+	bike_mass = b.mass_kg
+	cda = t.physics.cda
+	crr = t.physics.crr
+	bottle_capacity_l = b.bottle_capacity_l
+	pocket_slots = int(b.pocket_slots)
+	bottles.resize(int(b.bottle_count))
+	auto_drink = false
+	auto_eat = false
+	auto_shift = false
+	auto_shop = false
+	for id in owned_upgrades:
+		_apply_upgrade(upgrade_def(id))
+
+
+func upgrade_def(id: String) -> Dictionary:
+	for u in t.upgrades:
+		if u.id == id:
+			return u
+	return {}
+
+
+func _apply_upgrade(u: Dictionary) -> void:
+	var e: Dictionary = u.get("effect", {})
+	pocket_slots += int(e.get("pocket_slots", 0))
+	bottle_capacity_l += e.get("bottle_capacity_l", 0.0)
+	cda += e.get("cda", 0.0)
+	crr += e.get("crr", 0.0)
+	bike_mass += e.get("bike_mass", 0.0)
+	for i in int(e.get("bottles", 0)):
+		bottles.append(0.0)
+	auto_drink = auto_drink or e.get("auto_drink", false)
+	auto_eat = auto_eat or e.get("auto_eat", false)
+	auto_shift = auto_shift or e.get("auto_shift", false)
+	auto_shop = auto_shop or e.get("auto_shop", false)
+
+
+## Upgrades the shop offers right now: not owned yet, prerequisites met.
+func available_upgrades() -> Array:
+	var out := []
+	for u in t.upgrades:
+		if owned_upgrades.has(u.id):
+			continue
+		if u.has("requires") and not owned_upgrades.has(u.requires):
+			continue
+		out.append(u)
+	return out
+
+
+func buy_upgrade(id: String) -> bool:
+	var u := upgrade_def(id)
+	if u.is_empty() or owned_upgrades.has(id) or coins < u.price or not is_at_shop():
+		return false
+	if u.has("requires") and not owned_upgrades.has(u.requires):
+		return false
+	coins -= u.price
+	owned_upgrades.append(id)
+	_apply_upgrade(u)
+	if int(u.get("effect", {}).get("bottles", 0)) > 0:
+		refill_bottles()
+	return true
+
+
+func is_at_shop() -> bool:
+	return resting_s > 0.0 and rest_reason == "shop"
+
+
+func leave_shop() -> void:
+	if is_at_shop():
+		resting_s = 0.0
+		rest_reason = ""
+
+
+func supplies_low() -> bool:
+	return water_left_l() < 0.4 * bottles.size() * bottle_capacity_l or pockets.size() <= pocket_slots / 2
+
+
+## What auto_shop buys: the cheapest carbs per coin, until pockets are full.
+func restock_food() -> void:
+	var best := ""
+	var best_value := 0.0
+	for id in t.food:
+		var f: Dictionary = t.food[id]
+		var value: float = f.carbs_g / f.price
+		if value > best_value:
+			best_value = value
+			best = id
+	while buy_food(best):
+		pass
+
+
 # ---------------------------------------------------------------- simulation
 
 func step(dt: float) -> void:
@@ -330,9 +423,12 @@ func step(dt: float) -> void:
 		var at := next_shop_km
 		next_shop_km = terrain.next_shop_after(at)
 		shop_reached.emit(at)
-		if stop_at_next_shop:
+		if stop_at_next_shop or (auto_shop and supplies_low()):
 			stop_at_next_shop = false
 			_start_rest(t.economy.shop_stop_minutes * 60.0, "shop")
+			refill_bottles()
+			if auto_shop:
+				restock_food()
 
 	if distance_km >= route_length_km():
 		distance_km = route_length_km()
@@ -564,7 +660,7 @@ func to_save() -> Dictionary:
 		"xp": xp, "levels": levels, "next_shop_km": next_shop_km,
 		"resting_s": resting_s, "rest_reason": rest_reason,
 		"sitting": sitting, "sit_reason": sit_reason, "walking": walking, "finished": finished,
-		"auto": [auto_drink, auto_eat, auto_shift],
+		"owned_upgrades": owned_upgrades, "stop_at_next_shop": stop_at_next_shop,
 	}
 
 
@@ -575,6 +671,8 @@ func load_save(d: Dictionary) -> void:
 	front = int(d.front)
 	rear = int(d.rear)
 	cadence_target = d.cadence_target
+	owned_upgrades.assign(d.get("owned_upgrades", []))
+	_reset_kit()
 	bottles.assign(d.bottles)
 	pockets.assign(d.pockets)
 	glycogen_g = d.glycogen_g
@@ -592,6 +690,4 @@ func load_save(d: Dictionary) -> void:
 	sit_reason = d.get("sit_reason", "")
 	walking = d.get("walking", false)
 	finished = d.get("finished", false)
-	auto_drink = d.auto[0]
-	auto_eat = d.auto[1]
-	auto_shift = d.auto[2]
+	stop_at_next_shop = d.get("stop_at_next_shop", false)

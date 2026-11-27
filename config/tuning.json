@@ -156,5 +156,19 @@
     "eat_glycogen_ratio": 0.6,
     "eat_gut_max_g": 30.0,
     "target_intensity": 0.6
-  }
+  },
+
+  "upgrades": [
+    {"id": "saddle_bag", "name": "Saddle bag", "desc": "+2 food slots", "price": 35, "effect": {"pocket_slots": 2}},
+    {"id": "third_bottle", "name": "Third bottle cage", "desc": "+1 bottle", "price": 50, "effect": {"bottles": 1}},
+    {"id": "fast_tyres", "name": "Fast tyres", "desc": "Less rolling resistance", "price": 90, "effect": {"crr": -0.0012}},
+    {"id": "big_bottles", "name": "Big bottles", "desc": "+0.2 L per bottle", "price": 70, "requires": "third_bottle", "effect": {"bottle_capacity_l": 0.2}},
+    {"id": "clip_on_aero", "name": "Clip-on aero bars", "desc": "Less air drag", "price": 120, "effect": {"cda": -0.04}},
+    {"id": "frame_bag", "name": "Frame bag", "desc": "+3 food slots", "price": 140, "requires": "saddle_bag", "effect": {"pocket_slots": 3}},
+    {"id": "light_wheels", "name": "Light wheels", "desc": "-1.2 kg", "price": 150, "effect": {"bike_mass": -1.2}},
+    {"id": "auto_drink", "name": "Hydration hose", "desc": "Drinks when thirsty", "price": 180, "effect": {"auto_drink": true}},
+    {"id": "auto_shop", "name": "Route planner", "desc": "Stops at shops when low and restocks", "price": 220, "effect": {"auto_shop": true}},
+    {"id": "auto_eat", "name": "Feeding routine", "desc": "Eats when the tank runs low", "price": 260, "effect": {"auto_eat": true}},
+    {"id": "auto_shift", "name": "Electronic auto-shift", "desc": "Always the right gear", "price": 400, "effect": {"auto_shift": true}}
+  ]
 }
