@@ -31,7 +31,7 @@ func _init() -> void:
 	var only: String = args.get("scenario", "")
 
 	print("Ultra Idle Cycling: pacing simulation")
-	print("time_scale=%sx  (1 real minute = %.0f game minutes)\n" % [tuning.time_scale, tuning.time_scale])
+	print("time_scale=%.0fx  (1 real minute = %.0f game minutes)\n" % [tuning.time_scale, tuning.time_scale])
 	_print_terrain(tuning)
 	for name in SCENARIOS:
 		if only != "" and name != only:
@@ -117,7 +117,7 @@ func run_scenario(name: String, sc: Dictionary, tuning: Dictionary, minutes: flo
 	var cp_index := 0
 
 	print("== %s (check-ins: %s, automation %s) ==" % [
-		name, "never" if sc.checkin_min <= 0.0 else "%s real min" % sc.checkin_min, "on" if sc.auto else "off"])
+		name, "never" if sc.checkin_min <= 0.0 else "%.0f real min" % sc.checkin_min, "on" if sc.auto else "off"])
 	print("  real min |    km | km/h | coins | glyc % | dehyd % | fatigue gen/mus | levels E/S/St/G/C | food water")
 
 	while sim.time_s < total_game_s:

@@ -2,7 +2,7 @@
 
 An idle game about an ultra-distance cyclist. Keep it open in the corner of your screen and manage cadence, gears, carbs and water as the road rolls through cel-shaded landscapes.
 
-Built with [Godot 4.3](https://godotengine.org/). See [docs/DESIGN.md](docs/DESIGN.md) for the design.
+Built with [Godot 4.7](https://godotengine.org/). See [docs/DESIGN.md](docs/DESIGN.md) for the design.
 
 ## Status
 
@@ -10,7 +10,7 @@ Step 1 of the prototype: the simulation core. There's no 3D scene yet.
 
 ## Running
 
-Requires Godot 4.3 on your PATH as `godot`.
+Requires Godot 4.7 on your PATH as `godot`.
 
 ```sh
 # Unit tests
