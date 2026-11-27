@@ -164,13 +164,30 @@ Answered by Tomek on 27 November 2026:
 3. **Progress continues while the game is closed,** with the same rules as live play.
 4. **One continent-long ride with an end.** Meta progression and new continents later.
 
+## The 3D prototype (step 2)
+
+- **Look.** Cel shading everywhere: three flat light bands with cool shadows, dark outlines on the rider, bike, trees and shops, and flat-coloured low-poly scenery. The renderer is Godot's Compatibility renderer, so the same project runs on phones, older laptops and the web.
+- **World.** The road and its landscape are built in 200 m chunks around the rider from the simulation's terrain, so a climb on screen is the same climb the simulation rides. Each biome has its own ground colours, side hills, scenery and far-off features (distant hills, snowy peaks, the sea on the coast).
+- **Time-lapse.** Because game time runs 10x faster, the world scrolls past like a time-lapse (about 70 m per real second at 25 km/h) and a full day passes in 2.4 real hours. The pedalling animation uses the real cadence so the legs look natural.
+- **Interface.** Body bars (energy, stomach, bottles, hydration, fatigue, legs), an effort meter that turns yellow and red when you're riding too hard, cadence and gear controls, food buttons for what's in the pockets, a "stop at shop" toggle, and the shop with food and upgrades.
+- **Upgrades in the first shop tier.** Saddle bag, third bottle, fast tyres, big bottles, aero bars, frame bag, light wheels, then the automation upgrades: hydration hose (auto-drink), route planner (stops at shops when low and restocks), feeding routine (auto-eat) and electronic auto-shift.
+- **Small window.** On desktop, Mini shrinks the game to a 480×300 always-on-top window in the bottom-right corner with a compact interface.
+- **Saving.** Autosave every 15 seconds and on close. On start, and when a phone brings the app back, the game catches up on the time away and shows what happened.
+
 ## Code layout
 
 ```
 config/tuning.json    all balance numbers
 sim/bike_physics.gd   power, speed, gears (pure functions)
 sim/terrain.gd        seeded endless road, biomes, temperature, shops
-sim/rider_sim.gd      the full game state and step(dt), save/load
+sim/rider_sim.gd      the full game state and step(dt), upgrades, save/load
+game/game.gd          main loop, camera, saving, offline catch-up, mini window
+game/world.gd         road and landscape chunks, scenery, sky and day-night
+game/rider.gd         rider and bike model with pedalling IK and poses
+game/hud.gd           interface
+shaders/              cel shading, outlines, water
 tools/simulate.gd     headless pacing simulation
+tools/playtest.gd     fast headless run of the real game loop
+tools/screenshot.gd   renders screenshots of set scenes
 tests/run_tests.gd    unit tests
 ```

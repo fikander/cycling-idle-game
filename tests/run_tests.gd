@@ -300,3 +300,59 @@ func test_route_finishes() -> void:
 		s.step(2.0)
 	check(s.finished, "route should finish")
 	near(s.distance_km, tuning.route.length_km, 1e-6, "distance stops at the finish")
+
+
+# ---------------------------------------------------------------- upgrades
+
+func _at_shop(s) -> void:
+	s.stop_at_next_shop = true
+	s.distance_km = s.next_shop_km - 0.001
+	s.step(2.0)
+
+
+func test_upgrades_only_at_shop_and_cost_coins() -> void:
+	var s := _sim()
+	s.coins = 1000.0
+	check(not s.buy_upgrade("saddle_bag"), "can't buy on the road")
+	_at_shop(s)
+	check(s.is_at_shop(), "at shop")
+	var slots: int = s.pocket_slots
+	check(s.buy_upgrade("saddle_bag"), "buy saddle bag")
+	check(s.pocket_slots == slots + 2, "saddle bag adds 2 slots")
+	near(s.coins, 1000.0 - 35.0, 0.5, "price paid")
+	check(not s.buy_upgrade("saddle_bag"), "can't buy twice")
+
+
+func test_upgrade_prerequisites() -> void:
+	var s := _sim()
+	s.coins = 1000.0
+	_at_shop(s)
+	check(not s.buy_upgrade("frame_bag"), "frame bag needs saddle bag")
+	check(s.buy_upgrade("saddle_bag"), "saddle bag")
+	check(s.buy_upgrade("frame_bag"), "now frame bag")
+
+
+func test_third_bottle_is_filled_and_survives_save() -> void:
+	var s := _sim()
+	s.coins = 1000.0
+	_at_shop(s)
+	check(s.buy_upgrade("third_bottle"), "buy bottle")
+	check(s.bottles.size() == 3, "three bottles")
+	near(s.bottles[2], s.bottle_capacity_l, 1e-6, "new bottle full")
+	s.buy_upgrade("auto_drink")
+	var b := _sim()
+	b.load_save(JSON.parse_string(JSON.stringify(s.to_save())))
+	check(b.bottles.size() == 3, "bottle count restored")
+	check(b.auto_drink, "automation restored from upgrades")
+
+
+func test_route_planner_stops_and_restocks() -> void:
+	var s := _sim()
+	s.owned_upgrades.append("auto_shop")
+	s._reset_kit()
+	s.pockets.clear()
+	s.coins = 100.0
+	s.distance_km = s.next_shop_km - 0.001
+	s.step(2.0)
+	check(s.is_at_shop(), "route planner stops when low")
+	check(s.pockets.size() == s.pocket_slots, "and restocks food")
