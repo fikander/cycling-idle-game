@@ -10,7 +10,9 @@ const Physics := preload("res://sim/bike_physics.gd")
 const Terrain := preload("res://sim/terrain.gd")
 
 signal shop_reached(km: float)
-signal collapsed(reason: String)
+signal sat_down(reason: String)
+signal got_up()
+signal route_finished()
 signal level_up(stat: String, level: int)
 
 var t: Dictionary  # tuning
@@ -50,6 +52,12 @@ var coins := 0.0
 var next_shop_km: float
 var resting_s := 0.0
 var rest_reason := ""
+## Out of fuel or water: the rider sits by the road until the player helps.
+var sitting := false
+var sit_reason := ""
+## Too weak to turn the pedals: pushing the bike at walking pace.
+var walking := false
+var finished := false
 
 # --- training (xp per stat; level = floor(sqrt(xp / xp_per_level))) ---
 var xp := {"endurance": 0.0, "stamina": 0.0, "strength": 0.0, "gut": 0.0, "cooling": 0.0}
@@ -259,8 +267,14 @@ func step(dt: float) -> void:
 	temperature_c = terrain.temperature_c(distance_km, hour_of_day())
 	capacity = current_capacity()
 
+	if finished:
+		_zero_motion()
+		return
 	if resting_s > 0.0:
 		_step_resting(dt)
+		return
+	if sitting:
+		_step_sitting(dt)
 		return
 
 	_run_automations()
@@ -292,6 +306,16 @@ func step(dt: float) -> void:
 		speed_ms = v_gear
 		cadence_rpm = cadence_target
 
+	# Can't turn the pedals over any more: get off and push.
+	var x: Dictionary = t.exhaustion
+	var walk_below: float = t.cadence.min_rpm + (x.walk_hysteresis_rpm if walking else 0.0)
+	walking = grinding and cadence_rpm < walk_below
+	if walking:
+		grinding = false
+		speed_ms = x.walk_speed_kmh / 3.6 * lerpf(0.5, 1.0, capacity)
+		power_w = x.walk_power_w
+		cadence_rpm = 0.0
+
 	intensity = power_w / ftp()
 	_step_metabolism(dt, p_req)
 	_step_hydration(dt)
@@ -310,7 +334,14 @@ func step(dt: float) -> void:
 			stop_at_next_shop = false
 			_start_rest(t.economy.shop_stop_minutes * 60.0, "shop")
 
-	_check_collapse()
+	if distance_km >= route_length_km():
+		distance_km = route_length_km()
+		finished = true
+		_zero_motion()
+		route_finished.emit()
+		return
+
+	_check_exhaustion()
 
 
 func _run_automations() -> void:
@@ -367,6 +398,9 @@ func _step_fatigue(dt: float) -> void:
 		torque_rel = (power_w / cadence_rpm) / (ftp() / t.cadence.optimal_rpm)
 	var over: float = max(0.0, torque_rel - f.muscle_torque_threshold)
 	muscle_fatigue += f.muscle_rate_per_h * over * over * strength * hours
+	if glycogen_g <= 0.5:
+		# Running on empty wears the rider down until they have to sit.
+		general_fatigue += t.exhaustion.empty_fatigue_per_h * hours
 	if over <= 0.0:
 		muscle_fatigue -= f.muscle_recovery_per_h * hours
 	xp.strength += over * hours * t.training.strength_xp_per_torque_h
@@ -414,19 +448,107 @@ func _start_rest(seconds: float, reason: String) -> void:
 	rest_reason = reason
 
 
-func _check_collapse() -> void:
-	var e: Dictionary = t.energy_penalties
+func _check_exhaustion() -> void:
+	var x: Dictionary = t.exhaustion
 	var reason := ""
-	if dehydration_pct() >= e.dehydration_collapse_pct:
+	if dehydration_pct() >= x.sit_dehydration_pct:
 		reason = "dehydration"
 	elif general_fatigue >= 100.0:
 		reason = "exhaustion"
 	if reason != "":
-		# A passer-by helps out: some water, a long rest.
-		water_deficit_l = min(water_deficit_l, t.rider.mass_kg * 0.02)
-		general_fatigue = min(general_fatigue, 85.0)
-		_start_rest(e.collapse_rest_h * 3600.0, reason)
-		collapsed.emit(reason)
+		sitting = true
+		sit_reason = reason
+		walking = false
+		_zero_motion()
+		sat_down.emit(reason)
+
+
+func _zero_motion() -> void:
+	speed_ms = 0.0
+	power_w = 0.0
+	cadence_rpm = 0.0
+	intensity = 0.0
+	coasting = false
+	grinding = false
+	walking = false
+
+
+## Sitting by the road. The rider never eats or drinks on their own, so
+## they only get up once the player has fixed what made them stop.
+func _step_sitting(dt: float) -> void:
+	_zero_motion()
+	var x: Dictionary = t.exhaustion
+	var hours := dt / 3600.0
+	general_fatigue = max(0.0, general_fatigue - x.sit_recovery_per_h * hours)
+	muscle_fatigue = max(0.0, muscle_fatigue - x.sit_recovery_per_h * hours)
+	carb_burn_gph = t.rider.resting_kcal_h * 0.5 / 4.0
+	glycogen_g = max(0.0, glycogen_g - carb_burn_gph * hours)
+	_absorb(dt)
+	sweat_lph = x.sit_sweat_lph
+	water_deficit_l += sweat_lph * hours
+	if can_get_up():
+		sitting = false
+		sit_reason = ""
+		got_up.emit()
+
+
+func can_get_up() -> bool:
+	var x: Dictionary = t.exhaustion
+	return dehydration_pct() < x.get_up_dehydration_pct \
+		and glycogen_ratio() + gut_g / t.rider.glycogen_max_g >= x.get_up_glycogen_ratio \
+		and general_fatigue < x.get_up_fatigue
+
+
+## Flag down a passing car: some water and food, for a price. Free if the
+## player is broke, so a stranded rider can always get going again.
+func roadside_help() -> bool:
+	if not sitting:
+		return false
+	var x: Dictionary = t.exhaustion
+	coins = max(0.0, coins - x.help_price) if coins >= x.help_price else coins
+	water_deficit_l = max(0.0, water_deficit_l - x.help_water_l)
+	gut_g += x.help_carbs_g
+	return true
+
+
+func route_length_km() -> float:
+	return t.route.length_km
+
+
+func route_progress() -> float:
+	return distance_km / route_length_km()
+
+
+## Offline progress: runs the simulation for time that passed while the
+## game was closed, with coarser steps. Same rules as live play, so an
+## unfed rider slows down and ends up sitting by the road.
+func catch_up(game_seconds: float) -> Dictionary:
+	var o: Dictionary = t.offline
+	var cap: float = o.max_real_hours * 3600.0 * t.time_scale
+	var remaining: float = min(game_seconds, cap)
+	var start_km := distance_km
+	var start_coins := coins
+	var sat_at_km := -1.0
+	var sat_after_s := -1.0
+	var elapsed := 0.0
+	while remaining > 0.0 and not finished:
+		var dt: float = min(o.sitting_step_s if sitting else o.step_s, remaining)
+		step(dt)
+		remaining -= dt
+		elapsed += dt
+		if sitting and sat_at_km < 0.0:
+			sat_at_km = distance_km
+			sat_after_s = elapsed
+	return {
+		"game_seconds": elapsed,
+		"km": distance_km - start_km,
+		"coins": coins - start_coins,
+		"sitting": sitting,
+		"sit_reason": sit_reason,
+		"sat_at_km": sat_at_km,
+		"sat_after_game_s": sat_after_s,
+		"finished": finished,
+	}
 
 
 # ---------------------------------------------------------------- save / load
@@ -441,6 +563,7 @@ func to_save() -> Dictionary:
 		"general_fatigue": general_fatigue, "muscle_fatigue": muscle_fatigue,
 		"xp": xp, "levels": levels, "next_shop_km": next_shop_km,
 		"resting_s": resting_s, "rest_reason": rest_reason,
+		"sitting": sitting, "sit_reason": sit_reason, "walking": walking, "finished": finished,
 		"auto": [auto_drink, auto_eat, auto_shift],
 	}
 
@@ -465,6 +588,10 @@ func load_save(d: Dictionary) -> void:
 	next_shop_km = d.next_shop_km
 	resting_s = d.resting_s
 	rest_reason = d.rest_reason
+	sitting = d.get("sitting", false)
+	sit_reason = d.get("sit_reason", "")
+	walking = d.get("walking", false)
+	finished = d.get("finished", false)
 	auto_drink = d.auto[0]
 	auto_eat = d.auto[1]
 	auto_shift = d.auto[2]
